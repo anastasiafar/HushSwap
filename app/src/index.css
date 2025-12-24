@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  font-family: 'Space Grotesk', sans-serif;
+  color: #1b1b1b;
+  background-color: #f5efe3;
+  --display-font: 'Fraunces', serif;
+  --mono-font: 'Space Mono', monospace;
+  --ink: #1a1712;
+  --muted: #6e6259;
+  --accent: #ff6b2d;
+  --accent-soft: #2bb3a3;
+  --card: #fffaf2;
+  --stroke: rgba(26, 23, 18, 0.12);
+  --shadow-card: 0 18px 45px rgba(32, 22, 13, 0.08);
+  --shadow-soft: 0 10px 30px rgba(32, 22, 13, 0.06);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, rgba(255, 187, 133, 0.25), transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(43, 179, 163, 0.2), transparent 35%),
+    #f5efe3;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(0px);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+body::before {
+  top: -140px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(255, 107, 45, 0.35), transparent 70%);
+}
+
+body::after {
+  bottom: -160px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(43, 179, 163, 0.35), transparent 70%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+code {
+  font-family: var(--mono-font);
+}
