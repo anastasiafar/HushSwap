@@ -1,110 +1,137 @@
-# FHEVM Hardhat Template
+# HushSwap
 
-A Hardhat-based template for developing Fully Homomorphic Encryption (FHE) enabled Solidity smart contracts using the
-FHEVM protocol by Zama.
+HushSwap is a privacy-preserving fixed-rate swap built on Zama FHEVM. It lets users swap encrypted wETH for encrypted wZama at a constant rate of 1 wETH = 1000 wZama, while keeping balances and transfer amounts confidential on-chain.
 
-## Quick Start
+## Project Summary
+This project demonstrates how Fully Homomorphic Encryption (FHE) can power a simple, predictable swap flow without exposing amounts. It includes confidential ERC7984 tokens, a swap contract that settles via confidential transfers, and a React front end that shows encrypted balances and can request decryption on demand.
 
-For detailed instructions see:
-[FHEVM Hardhat Quick Start Tutorial](https://docs.zama.ai/protocol/solidity-guides/getting-started/quick-start-tutorial)
+## Key Features
+- Fixed exchange rate: 1 wETH -> 1000 wZama
+- Encrypted balances and transfer amounts using ERC7984
+- Swap executed on confidential token transfer callback
+- Frontend balance view with explicit decrypt action
+- No mock data: UI reads live on-chain state
 
-### Prerequisites
+## Advantages
+- Predictable pricing with zero slippage
+- Strong privacy for balances and swap amounts
+- Simple user flow and easy auditing of logic
+- Clear separation of token logic and swap logic
+- Extensible foundation for additional pairs and features
 
-- **Node.js**: Version 20 or higher
-- **npm or yarn/pnpm**: Package manager
+## Problems Solved
+- Users can swap without revealing amounts publicly
+- Teams can build a demo swap without price oracles
+- Developers get a minimal example of FHEVM integration
+- Frontend illustrates encrypted reads and user-triggered decrypts
 
-### Installation
+## Technology Stack
+- Smart contracts: Solidity, Hardhat, hardhat-deploy
+- Confidential tokens: OpenZeppelin ERC7984
+- FHEVM: Zama Solidity libraries and config
+- Frontend: React, Vite, RainbowKit
+- Data access: viem for reads, ethers for writes
+- Tooling: TypeScript, npm
 
-1. **Install dependencies**
+## Contracts
+- `contracts/WrapETH.sol`: ERC7984 token for encrypted wETH balances.
+- `contracts/WrapZama.sol`: ERC7984 token for encrypted wZama balances.
+- `contracts/HushSwap.sol`: Receives confidential wETH transfers and sends wZama at `SWAP_RATE`.
 
+Design notes:
+- The swap rate is fixed in-contract (`SWAP_RATE = 1000`).
+- The swap is triggered by `onConfidentialTransferReceived`.
+- View functions avoid `msg.sender` to keep logic deterministic.
+- Token `mint` is currently public for local testing; production should add access control.
+
+## Frontend
+- Located in `app/`.
+- Uses ethers for write transactions and viem for read calls.
+- Shows encrypted balances; users must explicitly request decryption.
+- No local storage and no environment variables are used in the frontend.
+- ABI is copied from `deployments/sepolia` (no JSON imports in the UI).
+
+## Repository Structure
+```
+.
+├── contracts/            Smart contracts
+├── deploy/               Deployment scripts
+├── deployments/          Deploy artifacts (including ABI)
+├── tasks/                Hardhat tasks
+├── test/                 Contract tests
+├── app/                  React frontend (Vite)
+└── hardhat.config.ts     Hardhat config
+```
+
+## Prerequisites
+- Node.js 20+
+- npm
+- A private key for deployment (no mnemonic support)
+- Infura API key for Sepolia
+
+## Setup
+1. Install root dependencies:
    ```bash
    npm install
    ```
-
-2. **Set up environment variables**
-
+2. Create or update `.env` in the repo root:
    ```bash
-   npx hardhat vars set MNEMONIC
-
-   # Set your Infura API key for network access
-   npx hardhat vars set INFURA_API_KEY
-
-   # Optional: Set Etherscan API key for contract verification
-   npx hardhat vars set ETHERSCAN_API_KEY
+   PRIVATE_KEY=your_private_key_without_0x
+   INFURA_API_KEY=your_infura_api_key
+   ETHERSCAN_API_KEY=your_etherscan_api_key
    ```
+   The deployment scripts use `process.env.PRIVATE_KEY` and `process.env.INFURA_API_KEY`.
 
-3. **Compile and test**
-
+## Local Development Workflow
+1. Compile contracts:
    ```bash
    npm run compile
+   ```
+2. Run tests and tasks:
+   ```bash
    npm run test
    ```
-
-4. **Deploy to local network**
-
+3. Start a local node and deploy:
    ```bash
-   # Start a local FHEVM-ready node
    npx hardhat node
-   # Deploy to local network
-   npx hardhat deploy --network localhost
+   npx hardhat deploy --network localhost --tags HushSwap
    ```
 
-5. **Deploy to Sepolia Testnet**
-
+## Sepolia Deployment
+1. Run tests and tasks locally first.
+2. Deploy with your private key:
    ```bash
-   # Deploy to Sepolia
-   npx hardhat deploy --network sepolia
-   # Verify contract on Etherscan
+   npx hardhat deploy --network sepolia --tags HushSwap
+   ```
+3. Verify (optional):
+   ```bash
    npx hardhat verify --network sepolia <CONTRACT_ADDRESS>
    ```
 
-6. **Test on Sepolia Testnet**
-
+## Frontend Usage
+1. Install frontend dependencies:
    ```bash
-   # Once deployed, you can run a simple test on Sepolia.
-   npx hardhat test --network sepolia
+   cd app
+   npm install
    ```
+2. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+3. Connect a wallet on Sepolia and use the swap and decrypt actions.
 
-## 📁 Project Structure
+## Operational Notes
+- Frontend reads are done with viem; writes are done with ethers.
+- The UI does not use local storage or environment variables.
+- Encrypted balance decryption requires the Zama relayer flow.
 
-```
-fhevm-hardhat-template/
-├── contracts/           # Smart contract source files
-│   └── FHECounter.sol   # Example FHE counter contract
-├── deploy/              # Deployment scripts
-├── tasks/               # Hardhat custom tasks
-├── test/                # Test files
-├── hardhat.config.ts    # Hardhat configuration
-└── package.json         # Dependencies and scripts
-```
+## Future Roadmap
+- Add reverse swap (wZama -> wETH)
+- Introduce access control for minting on production networks
+- Add swap limits and rate governance
+- Improve UI feedback for encrypted and decrypted states
+- Expand to additional confidential tokens
+- Formal security review and gas profiling
 
-## 📜 Available Scripts
-
-| Script             | Description              |
-| ------------------ | ------------------------ |
-| `npm run compile`  | Compile all contracts    |
-| `npm run test`     | Run all tests            |
-| `npm run coverage` | Generate coverage report |
-| `npm run lint`     | Run linting checks       |
-| `npm run clean`    | Clean build artifacts    |
-
-## 📚 Documentation
-
-- [FHEVM Documentation](https://docs.zama.ai/fhevm)
-- [FHEVM Hardhat Setup Guide](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup)
-- [FHEVM Testing Guide](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat/write_test)
-- [FHEVM Hardhat Plugin](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat)
-
-## 📄 License
-
-This project is licensed under the BSD-3-Clause-Clear License. See the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/zama-ai/fhevm/issues)
-- **Documentation**: [FHEVM Docs](https://docs.zama.ai)
-- **Community**: [Zama Discord](https://discord.gg/zama)
-
----
-
-**Built with ❤️ by the Zama team**
+## License
+BSD-3-Clause-Clear. See `LICENSE`.
